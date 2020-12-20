@@ -1,0 +1,29 @@
+/*Questão 2: Now see if you can do the same thing for every rep name in the sales_reps table.
+ Again provide first and last name columns. */
+
+SELECT 
+	LEFT(name, space_position) as First_Name,
+	RIGHT(name, (LENGTH(name) - space_position)) as Last_Name
+FROM 
+(
+	SELECT 
+		name,
+		POSITION(' ' IN name) as space_position
+	FROM sales_reps
+) t1 
+	
+
+
+/* Questão 1: Use the accounts table to create first and last name columns 
+that hold the first and last names for the primary_poc.*/
+
+SELECT 
+	LEFT(primary_poc, space_position) as First_Name,
+	RIGHT(primary_poc, (LENGTH(primary_poc) - space_position)) as Last_Name
+FROM 
+(
+	SELECT 
+		primary_poc,
+		POSITION(' ' IN primary_poc) as space_position
+	FROM accounts
+) t1

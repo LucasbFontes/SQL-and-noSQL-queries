@@ -1,0 +1,68 @@
+/*Questão 4:  Imagine you're an analyst at Parch & Posey and you want to determine how the current order's total revenue
+ ("total" meaning from sales of all types of paper) compares to the next order's total revenue.  
+you'll need to use occurred_at and total_amt_usd in the orders table along with LEAD to do so. In your query results,
+ there should be four columns: occurred_at, total_amt_usd, lead, and lead_difference.  */
+ 
+SELECT
+	occurred_at,
+	total_usd,
+	LEAD(total_usd) OVER (ORDER BY occurred_at) as led,
+	LEAD(total_usd) OVER (ORDER BY occurred_at) - total_usd   as lea_difference	
+FROM
+(
+	SELECT
+	occurred_at,
+	SUM(total_amt_usd) as total_usd
+	from orders
+	group by 1
+)t1
+
+
+
+
+
+
+
+
+/* Questão 3: Select the id, account_id, and total variable from the orders table,
+ then create a column called total_rank that ranks this total amount of paper ordered (from highest to lowest)
+ for each account using a partition. Your final table should have these four columns.
+*/
+
+SELECT 
+	id,
+	account_id,
+	total,
+	RANK() OVER (PARTITION BY account_id ORDER BY total DESC) as rank_sold_by_account
+FROM orders
+
+
+
+/* Questão 2: Now, modify your query from the previous quiz to include partitions.
+Still create a running total of standard_amt_usd (in the orders table) over order time, but this time, 
+date truncate occurred_at by year and partition by that same year-truncated occurred_at variable. 
+Your final table should have three columns: One with the amount being added for each row, one for the truncated date, 
+and a final column with the running total within each year.
+ */
+ 
+SELECT 
+	standard_amt_usd,
+	DATE_TRUNC('year', occurred_at) as occurred_year,
+    SUM(standard_amt_usd) OVER (PARTITION BY DATE_TRUNC('year', occurred_at) ORDER BY occurred_at)
+FROM orders
+
+
+
+
+
+
+
+/* Questão 1: Using Derek's previous video as an example, create another running total. 
+This time, create a running total of standard_amt_usd (in the orders table) over order time with no date truncation. 
+Your final table should have two columns: one with the amount being added for each new row, and a second with the running total.
+ */
+ 
+SELECT 
+	standard_amt_usd,
+    SUM(standard_amt_usd) OVER (ORDER BY occurred_at)
+FROM orders
