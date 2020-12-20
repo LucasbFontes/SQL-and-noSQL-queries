@@ -1,0 +1,238 @@
+Help MongoDB pick a movie our next movie night! Based on employee polling, 
+we've decided that potential movies must meet the following criteria.
+
+imdb.rating is at least 7
+genres does not contain "Crime" or "Horror"
+rated is either "PG" or "G"
+languages contains "English" and "Japanese"
+
+
+pipeline = 
+[
+	{
+		$match:
+			{
+				$and: 
+					[
+						
+							{'imdb.rating': {$gte: 7}},
+							{'genres': {$nin:["Crime", "Horror"]}},
+							{'rated':{$in:["PG", "G"]}},
+							{'languages':{$all:["English", "Japanese"]}}
+						
+					]
+			
+			}
+	}
+]
+
+-----------------------------------------------------------------------------------------
+Using the same $match stage from the previous lab, add a $project stage to only display the 
+the title and film rating (title and rated fields).
+
+pipeline = 
+[
+	{
+		$match:
+			{
+				$and: 
+					[
+						
+							{'imdb.rating': {$gte: 7}},
+							{'genres': {$nin:["Crime", "Horror"]}},
+							{'rated':{$in:["PG", "G"]}},
+							{'languages':{$all:["English", "Japanese"]}}
+						
+					]
+			
+			},
+	},
+	{
+		$project:
+			{
+				"_id":0,
+				"title": 1,
+				"rated": 1			
+			}
+	}
+]
+
+---------------------------------------------------------------------------------------------------------
+Using the Aggregation Framework, find a count of the number of movies that have a title composed of one word.
+To clarify, "Cinderella" and "3-25" should count, where as "Cast Away" would not.
+
+pipeline = [
+  {
+    $match: {
+      title: {
+        $type: "string"
+      }
+    }
+  },
+  {
+    $project: {
+      title: { $split: ["$title", " "] },
+      _id: 0
+    }
+  },
+  {
+    $match: {
+      title: { $size: 1 }
+    }
+  }
+].itcount()
+	
+--------------------------------------------------------------------------------------------------------------------------
+
+For movies released in the USA with a tomatoes.viewer.rating greater than or equal to 3, calculate a new field 
+called num_favs that represets how many favorites appear in the cast field of the movie.
+
+Sort your results by num_favs, tomatoes.viewer.rating, and title, all in descending order.
+
+What is the title of the 25th film in the aggregation result?
+
+db.movies.aggregate([
+  {
+    $match: {
+      "tomatoes.viewer.rating": { $gte: 3 },
+      countries: "USA",
+      cast: {
+        $in: ["Sandra Bullock","Tom Hanks","Julia Roberts","Kevin Spacey","George Clooney"]
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      title: 1,
+      "tomatoes.viewer.rating": 1,
+      num_favs: {
+        $size: {
+          $setIntersection: [
+            "$cast",
+            favorites
+          ]
+        }
+      }
+    }
+  },
+  {
+    $sort: { num_favs: -1, "tomatoes.viewer.rating": -1, title: -1 }
+  },
+  {
+    $skip: 24
+  },
+  {
+    $limit: 1
+  }
+])
+// Set intersection bate os dados que estão nas variáveis entre colchetes. Nesse caso, vai ver os valores que estão em favorites e adicionar a num favs
+se eles estiverem no cast de determinado filme. O size tá ali pra ajudar no project, porque se o setIntersection der certo o size vai retornar 1(porque houve 
+a equivalencia dos dados).
+---------------------------------------------------------------------------------------------------------------------------------------
+Calculate an average rating for each movie in our collection where English is an available language, the minimum imdb.rating is 
+at least 1, the minimum imdb.votes is at least 1, and it was released in 1990 or after. 
+You'll be required to rescale (or normalize) imdb.votes. The formula to rescale imdb.votes and calculate normalized_rating is included 
+as a handout.
+
+What film has the lowest normalized_rating?
+
+db.movies.aggregate([
+	{
+		$match: 
+			{
+				languages: ['English'],
+				"imdb.rating": {$gte: 1},
+				"imdb.votes": {$gte: 1},
+				year: {$gte: 1990}
+			}
+	},
+    {
+    $project: {
+      _id: 0,
+      title: 1,
+      "imdb.rating": 1,
+      "imdb.votes": 1,
+      normalized_rating: {
+        $avg: [
+          "$imdb.rating",
+          {
+            $add: [
+              1,
+              {
+                $multiply: [
+                  9,
+                  {
+                    $divide: [
+                      { $subtract: ["$imdb.votes", 5] },
+                      { $subtract: [1521105, 5] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  { $sort: { normalized_rating: 1 } },
+  { $limit: 1 }
+])
+
+// Ideal é usar o project para campo calculado.
+------------------------------------------------------------------------------------------------------------------------------------
+For all films that won at least 1 Oscar, calculate the standard deviation, highest, lowest, and average imdb.rating.
+Use the sample standard deviation expression.
+
+
+db.movies.aggregate([
+	{
+		$match:
+			{
+				awards: /Won \d{1,2} Oscars?/
+			}
+	
+	},
+	{
+		$group:
+			{
+				_id:null,
+				max_imdb : { $max: "$imdb.rating"},
+				min_imdb : {"$min" : "$imdb.rating"},
+				std_dev_imdb: {$stdDevSamp: "$imdb.rating"},
+				avg_imdb : {$avg : "$imdb.rating"}
+			}
+	}
+])
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
