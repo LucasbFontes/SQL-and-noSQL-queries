@@ -7,7 +7,7 @@ The noSQL queries comes from MongoDB(which is a document oriented database) and 
 
 ## Differences between SQL and noSQL databases
 
-Since I came with this SQL-noSQL concept in this ReadME, I realize that would be nice to give a little context about what they are. Please keep in mind that this is only a shallow explanation, which has the objective of clarify the concepts. At the end of this text I'll put some links if you'd like to go deeply(which I also strongly recommend you to do).
+Since I came with this SQL-noSQL concept in this ReadME, I realize that would be nice to give a little context about what they are. Please keep in mind that this is only a shallow explanation, which has the goal to clarify the concepts. At the end of this text I'll put some links if you'd like to go deeply(which I also strongly recommend you to do).
 
 ### SQL Databases
 
